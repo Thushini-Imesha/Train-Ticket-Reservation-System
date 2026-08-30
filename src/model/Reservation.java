@@ -57,4 +57,12 @@ public class Reservation {
         System.out.println("Status         : " + status);
         System.out.println("==========================================");
     }
+    @Override
+    public String toString() {
+
+        return "Reservation "
+                + getReservationId()
+                + " - "
+                + getPassenger();
+    }
 }

@@ -3,6 +3,7 @@ package Service;
 import model.Passanger;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.io.*;
 
 /*
 this manages all passanger CRUD operation.
@@ -11,6 +12,11 @@ this manages all passanger CRUD operation.
 public class PassengerService {
     //arraylist is used to temporially store passanger objects.
     private ArrayList<Passanger> passangers = new ArrayList<>();
+    /*
+     * File used to permanently store passenger records.
+     */
+    private final String FILE_NAME =
+            "passengers.txt";
 
     //return the passanager list
     //this allowa other services to accsses this
@@ -21,7 +27,15 @@ public class PassengerService {
 
     // Constructor for PassengerService,Receives the Scanner created in Main.java.*/
     public PassengerService(Scanner scanner) {
-        this.scanner = scanner;}
+
+        this.scanner = scanner;
+
+        /*
+         * Load previously saved passengers
+         * when the application starts.
+         */
+        loadPassengersFromFile();
+    }
 
     //create,add a new passanger to the system.
     public void addPassenger() {
@@ -78,6 +92,7 @@ public class PassengerService {
             //search for the arraylist
             for(Passanger passanger : passangers){
                 if(passanger.getUserid() == userid){
+                    passanger.displayPassangerDetails();
                     passanger.displayPassangerDetails();
                     return;
                 }
@@ -157,10 +172,10 @@ public class PassengerService {
      * directly from the graphical user interface.
      */
     public boolean addPassenger(
-            int passengerId,
+            int userid,
             String username,
             String email,
-            String telephone,
+            String tele,
             String nic) {
 
         /*
@@ -168,7 +183,7 @@ public class PassengerService {
          */
         for (Passanger passenger : passangers) {
 
-            if (passenger.getUserid() == passengerId) {
+            if (passenger.getUserid() == userid) {
 
                 return false;
             }
@@ -179,10 +194,10 @@ public class PassengerService {
          */
         Passanger newPassenger =
                 new Passanger(
-                        passengerId,
+                        userid,
                         username,
                         email,
-                        telephone,
+                        tele,
                         nic
                 );
 
@@ -190,6 +205,8 @@ public class PassengerService {
          * Store passenger in the ArrayList.
          */
         passangers.add(newPassenger);
+
+        savePassengersToFile();
 
         return true;
     }
@@ -231,10 +248,10 @@ public class PassengerService {
      * Returns false if passenger does not exist.
      */
     public boolean updatePassenger(
-            int passengerId,
+            int userid,
             String username,
             String email,
-            String telephone,
+            String tele,
             String nic) {
 
         /*
@@ -242,7 +259,7 @@ public class PassengerService {
          */
         Passanger passenger =
                 findPassengerById(
-                        passengerId
+                        userid
                 );
 
         /*
@@ -258,9 +275,10 @@ public class PassengerService {
          */
         passenger.setUsername(username);
         passenger.setEmail(email);
-        passenger.setTele(telephone);
+        passenger.setTele(tele);
         passenger.setNic(nic);
 
+        savePassengersToFile();
         return true;
     }
     /*
@@ -296,7 +314,218 @@ public class PassengerService {
          */
         passangers.remove(passenger);
 
+        savePassengersToFile();
+
         return true;
+    }
+    /*
+     * =====================================================
+     * PASSENGER LOGIN
+     * =====================================================
+     *
+     * Searches for a passenger using
+     * login username and password.
+     *
+     * Returns the passenger if login is correct.
+     * Returns null if login fails.
+     */
+    public Passanger loginPassenger(
+            String loginUsername,
+            String loginPassword) {
+
+        /*
+         * Check every passenger.
+         */
+        for (Passanger passenger :
+                passangers) {
+
+            if (passenger
+                    .getLoginUsername()
+                    .equalsIgnoreCase(
+                            loginUsername
+                    )
+                    &&
+                    passenger
+                            .getLoginPassword()
+                            .equals(
+                                    loginPassword
+                            )) {
+
+                return passenger;
+            }
+        }
+
+
+        /*
+         * Login failed.
+         */
+        return null;
+    }
+    /*
+     * =====================================================
+     * SAVE PASSENGERS TO FILE
+     * =====================================================
+     *
+     * Saves every passenger so the data remains
+     * available after the program is closed.
+     */
+    public void savePassengersToFile() {
+
+        try {
+
+            PrintWriter writer =
+                    new PrintWriter(
+                            new FileWriter(
+                                    FILE_NAME
+                            )
+                    );
+
+
+            for (Passanger passenger :
+                    passangers) {
+
+                writer.println(
+
+                        passenger.getUserid()
+                                + "|"
+                                + passenger.getUsername()
+                                + "|"
+                                + passenger.getEmail()
+                                + "|"
+                                + passenger.getTele()
+                                + "|"
+                                + passenger.getNic()
+                );
+            }
+
+
+            writer.close();
+
+        }
+        catch (IOException e) {
+
+            System.out.println(
+                    "Error saving passenger data."
+            );
+
+            e.printStackTrace();
+        }
+    }
+    /*
+     * =====================================================
+     * LOAD PASSENGERS FROM FILE
+     * =====================================================
+     *
+     * Loads passengers saved during previous
+     * application sessions.
+     */
+    public void loadPassengersFromFile() {
+
+        File file =
+                new File(
+                        FILE_NAME
+                );
+
+
+        /*
+         * First time running:
+         * file may not exist yet.
+         */
+        if (!file.exists()) {
+
+            return;
+        }
+
+
+        try {
+
+            BufferedReader reader =
+                    new BufferedReader(
+                            new FileReader(
+                                    file
+                            )
+                    );
+
+
+            String line;
+
+
+            while ((line = reader.readLine())
+                    != null) {
+
+                /*
+                 * Split the stored passenger data.
+                 */
+                String[] data =
+                        line.split("\\|");
+
+
+                /*
+                 * Check correct number of values.
+                 */
+                if (data.length >= 5) {
+
+                    int userId =
+                            Integer.parseInt(
+                                    data[0]
+                            );
+
+
+                    String username =
+                            data[1];
+
+
+                    String email =
+                            data[2];
+
+
+                    String telephone =
+                            data[3];
+
+
+                    String nic =
+                            data[4];
+
+
+                    /*
+                     * Create Passenger object.
+                     *
+                     * Your Passanger constructor automatically
+                     * sets:
+                     *
+                     * Login Username = username
+                     * Login Password = NIC
+                     */
+                    Passanger passenger =
+                            new Passanger(
+                                    userId,
+                                    username,
+                                    email,
+                                    telephone,
+                                    nic
+                            );
+
+                    passangers.add(passenger);
+
+                    /*
+                     * Permanently save passenger.
+                     */
+                    savePassengersToFile();
+                }
+            }
+
+            reader.close();
+
+        }
+        catch (IOException |
+               NumberFormatException e) {
+
+            System.out.println(
+                    "Error loading passenger data."
+            );
+
+            e.printStackTrace();
+        }
     }
 }
 

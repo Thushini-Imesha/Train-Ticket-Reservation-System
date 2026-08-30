@@ -10,6 +10,7 @@ import Service.StationService;
 import Service.RouteService;
 import Service.SeatService;
 import Service.ReservationService;
+import Service.PaymentService;
 /*
  * =====================================================
  * MAIN DASHBOARD
@@ -29,7 +30,9 @@ public class MainDashboard extends JFrame {
     private JButton routeButton;
     private JButton seatButton;
     private JButton reservationButton;
+    private JButton paymentButton;
     private JButton exitButton;
+
     // PassengerService used by the GUI.
     private PassengerService passengerService;
     private TrainService trainService;
@@ -37,40 +40,45 @@ public class MainDashboard extends JFrame {
     private RouteService routeService;
     private SeatService seatService;
     private ReservationService reservationService;
+    private PaymentService paymentService;
 
     /*
      * =====================================================
      * CONSTRUCTOR
      * =====================================================
      */
-    public MainDashboard() {
-        /*
-         * Create PassengerService.
-         */
-        passengerService =
-                new PassengerService(new Scanner(System.in)
-                );
-        trainService =
-                new TrainService(
-                        new Scanner(System.in)
-                );
-        stationService =
-                new StationService(
-                        new Scanner(System.in)
-                );
-        routeService =
-                new RouteService(
-                        new Scanner(System.in)
-                );
-        seatService =
-                new SeatService(
-                        new Scanner(System.in)
-                );
-        reservationService =
-                new ReservationService(
-                        new Scanner(System.in)
-                );
+    public MainDashboard(
+            PassengerService passengerService,
+            TrainService trainService,
+            StationService stationService,
+            RouteService routeService,
+            SeatService seatService,
+            ReservationService reservationService,
+            PaymentService paymentService) {
 
+        /*
+         * Use the shared services.
+         */
+        this.passengerService =
+                passengerService;
+
+        this.trainService =
+                trainService;
+
+        this.stationService =
+                stationService;
+
+        this.routeService =
+                routeService;
+
+        this.seatService =
+                seatService;
+
+        this.reservationService =
+                reservationService;
+
+        this.paymentService =
+                paymentService;
         /*
          * Set window title.
          */
@@ -79,7 +87,7 @@ public class MainDashboard extends JFrame {
         /*
          * Set window size.
          */
-        setSize(600, 500);
+        setSize(800, 700);
 
         /*
          * Display window in the center of the screen.
@@ -262,6 +270,19 @@ public class MainDashboard extends JFrame {
 
         panel.add(reservationButton, gbc);
 
+        paymentButton =
+                new JButton(
+                        "Payment Management"
+                );
+        gbc.gridx = 0;
+        gbc.gridy = 8;
+        gbc.gridwidth = 2;
+
+        panel.add(
+                paymentButton,
+                gbc
+        );
+
 
         /*
          * =================================================
@@ -275,7 +296,7 @@ public class MainDashboard extends JFrame {
                 );
 
         gbc.gridx = 0;
-        gbc.gridy = 8;
+        gbc.gridy = 10;
 
         panel.add(exitButton, gbc);
 
@@ -342,6 +363,19 @@ public class MainDashboard extends JFrame {
                     reservationService
             );
         });
+        /*
+         * =====================================================
+         * OPEN PAYMENT MANAGEMENT
+         * =====================================================
+         */
+        paymentButton
+                .addActionListener(e -> {
+
+                    new PaymentManagementFrame(
+                            paymentService,
+                            reservationService
+                    );
+                });
 
         /*
          * Exit button event.
@@ -372,10 +406,6 @@ public class MainDashboard extends JFrame {
      *
      * Used only for testing the dashboard directly.
      */
-    public static void main(String[] args) {
+    // end of your last method
 
-        SwingUtilities.invokeLater(
-                () -> new MainDashboard()
-        );
-    }
 }

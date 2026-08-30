@@ -2,7 +2,17 @@ package GUI;
 
 import javax.swing.*;
 import java.awt.*;
-import Service.AdminService;
+
+import Service.PassengerService;
+import Service.TrainService;
+import Service.StationService;
+import Service.RouteService;
+import Service.SeatService;
+import Service.ReservationService;
+import Service.PaymentService;
+
+import model.Passanger;
+
 /*
  * =====================================================
  * LOGIN FRAME
@@ -20,6 +30,18 @@ public class LoginFrame extends JFrame {
     private JPasswordField passwordField;
     private JButton loginButton;
     private java.util.Scanner scanner;
+    /*
+     * =====================================================
+     * SHARED SERVICES
+     * =====================================================
+     */
+    private PassengerService passengerService;
+    private TrainService trainService;
+    private StationService stationService;
+    private RouteService routeService;
+    private SeatService seatService;
+    private ReservationService reservationService;
+    private PaymentService paymentService;
 
 
     /*
@@ -27,10 +49,32 @@ public class LoginFrame extends JFrame {
      * CONSTRUCTOR
      * =====================================================
      */
-    public LoginFrame() {
-        scanner = new java.util.Scanner(System.in);
-        AdminService adminService = new AdminService(scanner);
+    public LoginFrame(
+            PassengerService passengerService,
+            TrainService trainService,
+            StationService stationService,
+            RouteService routeService,
+            SeatService seatService,
+            ReservationService reservationService,
+            PaymentService paymentService) {
 
+        /*
+         * Store SAME shared services.
+         */
+        this.passengerService = passengerService;
+        this.trainService = trainService;
+        this.stationService = stationService;
+        this.routeService = routeService;
+        this.seatService = seatService;
+        this.reservationService = reservationService;
+        this.paymentService = paymentService;
+
+
+        /*
+         * KEEP YOUR EXISTING GUI CODE BELOW.
+         */
+
+        setTitle("Train Ticket Reservation System");
         // Set the title of the window.
         setTitle("Train Ticket Reservation System");
 
@@ -132,43 +176,146 @@ public class LoginFrame extends JFrame {
          * =====================================================
          * This code runs when the LOGIN button is clicked.
          */
+        /*
+         * =====================================================
+         * LOGIN BUTTON EVENT
+         * =====================================================
+         */
         loginButton.addActionListener(e -> {
-             // Get the username entered in the username field.
-            String username = usernameField.getText();
+
             /*
-             * Get the password entered in the password field.
-             * getPassword() returns a char array,so we convert it into a String.
+             * Read login fields.
              */
-            String password = new String(passwordField.getPassword());
-            //Check username and password
-            boolean loggedIn = adminService.login(username, password);
-            if (loggedIn) {
-                JOptionPane.showMessageDialog(this, "Login successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                 //Close the Login window
+            String username =
+                    usernameField
+                            .getText()
+                            .trim();
+
+
+            String password =
+                    new String(
+                            passwordField
+                                    .getPassword()
+                    );
+
+
+            /*
+             * Check empty fields.
+             */
+            if (username.isEmpty()
+                    || password.isEmpty()) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Please enter username and password.",
+                        "Login Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+
+                return;
+            }
+
+
+            /*
+             * =================================================
+             * ADMIN LOGIN
+             * =================================================
+             *
+             * Keep your current admin credentials here.
+             *
+             * Change these if your existing credentials
+             * are different.
+             */
+            if (username.equals("admin")
+                    &&
+                    password.equals("admin123")) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Admin login successful!",
+                        "Login",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+
                 dispose();
-                new MainDashboard();
+
+
+                /*
+                 * Open Admin Dashboard.
+                 */
+                new MainDashboard(    passengerService,
+                        trainService,
+                        stationService,
+                        routeService,
+                        seatService,
+                        reservationService,
+                        paymentService);
+
+
+                return;
             }
-            else {
-                JOptionPane.showMessageDialog(this, "Invalid username or password!", "Login Failed", JOptionPane.ERROR_MESSAGE);
+
+
+            /*
+             * =================================================
+             * PASSENGER LOGIN
+             * =================================================
+             */
+
+            Passanger passenger =
+                    passengerService
+                            .loginPassenger(
+                                    username,
+                                    password
+                            );
+
+
+            if (passenger != null) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Passenger login successful!",
+                        "Login",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+
+                dispose();
+
+
+                /*
+                 * Open Passenger Dashboard.
+                 */
+                new PassengerDashboard(
+                        passenger,
+                        trainService,
+                        seatService,
+                        reservationService,
+                        paymentService
+                );
+
+
+                return;
             }
+
+
+            /*
+             * =================================================
+             * LOGIN FAILED
+             * =================================================
+             */
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Invalid username or password.",
+                    "Login Failed",
+                    JOptionPane.ERROR_MESSAGE
+            );
         });
         //Add the panel to the window
         add(panel);
         // Make the window visible.
         setVisible(true);
-    }
-    /*
-     * =====================================================
-     * MAIN METHOD
-     * =====================================================
-     *
-     * This method is only used to test the GUI.
-     */
-    public static void main(String[] args) {
-        /*
-         * Start the GUI using the Swing Event
-         * Dispatch Thread.
-         */
-        SwingUtilities.invokeLater(() -> new LoginFrame());
     }
 }
